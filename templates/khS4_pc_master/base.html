@@ -1,0 +1,12 @@
+{% extends 'khs/base.html' %}
+{% block body %}
+{% load static %}
+
+<!-- JS -->
+<script type="text/javascript" src="{% static 'khS4_pc_master/base.js' %}"></script>
+<div class="progress">
+    <div id="autorefresh_bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+        style="width: 0%" aria-valuenow="0" aria-valuemax="10"></div>
+</div>
+<div id="pcCards"></div>
+{% endblock %}
