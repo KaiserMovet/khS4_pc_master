@@ -2,16 +2,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.template import loader
 from django.core import serializers
-from django.shortcuts import get_object_or_404
-
+from django.shortcuts import get_object_or_404, render
 from .models import Computer
 import json
+import threading
 # Main
 
 
 def index(request):
-    template = loader.get_template('khS4_pc_master/base.html')
-    return HttpResponse(template.render())
+    return render(request, 'khS4_pc_master/base.html')
 
 
 # API
@@ -42,9 +41,22 @@ def api_send(request, mac):
     return HttpResponse("0")
 
 
+def _refresh_non_alive_computers(computer_list):
+    print([computer for computer in computer_list if not computer.is_alive])
+    [computer.refresh() for computer in computer_list if not computer.is_alive]
+    pass
+
+
 @csrf_exempt
 def api_get_all(request):
     computer_list = Computer.objects.all()
-    [computer.refresh() for computer in computer_list]
+    [computer.refresh() for computer in computer_list if computer.is_alive]
     computer_json = serializers.serialize("json", computer_list)
+    # Refresh non-alive computers, do not wait for them
+    if any([not computer.is_alive for computer in computer_list]):
+        print("Start thread")
+        th = threading.Thread(
+            target=_refresh_non_alive_computers, args=(computer_list,))
+        th.daemon = True
+        th.start()
     return HttpResponse(computer_json)

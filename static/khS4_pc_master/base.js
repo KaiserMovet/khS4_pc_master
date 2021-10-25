@@ -21,15 +21,13 @@ var pcCardHeader = {
     editName: function (computer_id) {
         var header_element = pcCardHeader.getHeaderElement(computer_id);
         header_element.innerHTML = pcCardHeader.getHeaderEditHTML(computer_id)
-        console.log(header_element);
     },
 
     getHeaderEditHTML: function (computer_id) {
         var current_name = $(pcCardHeader.getHeaderElement(computer_id)).find("#name")[0].innerHTML;
-        console.log(current_name);
         var form_id = computer_id + "_name_edit";
         var header =
-            `<form class="row row-cols-lg-auto g-3 align-items-center">
+            `<form class="row row-cols-lg-auto g-3 align-items-center text-center">
                 <div class="col-12">
                 <div class="input-group">
                     <input type="text" maxlength=18 class="form-control form-control-sm" id="${form_id}" value="${current_name}">
@@ -49,7 +47,7 @@ var pcCardHeader = {
         var header =
             `<a id="name">${name}</a>
             <a id="ip"></a>
-            <button type='button' class="btn btn-primary btn-sm" onClick='pcCardHeader.editName("${computer_id}")'>
+            <button type='button' class="btn btn-primary btn-sm khs-rounded" onClick='pcCardHeader.editName("${computer_id}")'>
                 <i class="bi bi-pencil-fill"></i>
             </button>`;
         return header;
@@ -67,17 +65,14 @@ var pcCards = {
     },
 
     getRealMac: function (temp_mac) {
-        console.log(temp_mac)
         real_mac = temp_mac.substring(3).replaceAll("_", ":");
         return real_mac;
     },
 
     sendCommand: function (computer_id, command) {
-        console.log("SEND", computer_id, command);
         var url = pcCards.buildURL(computer_id);
-        console.log("URL", url);
         var data = { "command": command };
-        RequestManager.getData(url, null, data);
+        RequestManager.getData(url, khsComponents.createToast, data, [computer_id, command, "success"]);
     },
 
     updateCard: function (computer_data) {
@@ -105,11 +100,12 @@ var pcCards = {
 
     createCard: function (cards_div, computer_id) {
         template =
-            `<div class="card" id=${computer_id}>
-                <div class="card-header">
+            `<div class="col">
+            <div class="card khs-rounded text-center" id=${computer_id} >
+                <div class="card-header ">
                 ${pcCardHeader.getHeaderHTML(computer_id)}
                 </div>
-                <div class="card-body">
+                <div class="card-body ">
                     <h5 class="card-title">Special title treatment</h5>
                     <button type='button' onClick='pcCards.sendCommand("${computer_id}", "on")'>on</button>
                     <button type='button' onClick='pcCards.sendCommand("${computer_id}", "off")'>off</button>
@@ -117,6 +113,7 @@ var pcCards = {
                     <button type='button' onClick='pcCards.sendCommand("${computer_id}", "volume;50")'>volume 50</button>
                     <button type='button' onClick='pcCards.sendCommand("${computer_id}", "volume;100")'>volume 100</button>
                 </div>
+            </div>
             </div>`;
         var card = $.parseHTML(template);
         cards_div.append(card);
@@ -132,7 +129,6 @@ var pcCards = {
     },
 
     specialUpdate: function (data) {
-        console.log("READY")
         var bar = $("#autorefresh_bar")[0];
         var progressbar_class_list = ["bg-success", "bg-warning"]
         data = pcCards.prepareData(data);
@@ -150,7 +146,6 @@ var pcCards = {
         var bar = $("#autorefresh_bar")[0];
         var current_second = parseInt(bar.getAttribute("aria-valuenow"));
         var max_second = parseInt(bar.getAttribute("aria-valuemax"));
-        console.log(current_second, max_second)
         current_second += 1;
         if (current_second > max_second) current_second = 0;
 
@@ -202,6 +197,13 @@ var pcMain = {
 
     onLoad: function () {
         pcCards.main();
+
+        khsComponents.createToast("xd", "xddddd", "primary")
+        khsComponents.createToast("xd", "xddddd", "success")
+        khsComponents.createToast("xd", "xddddd", "danger")
+        khsComponents.createToast("xd", "xddddd", "warning")
+        CookieManager.setCookie("color", "xd")
+
     }
 }
 

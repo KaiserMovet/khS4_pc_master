@@ -19,7 +19,7 @@ class Computer(models.Model):
     name = models.CharField(max_length=18, default="Computer")
     port = models.IntegerField()
     ip = models.GenericIPAddressField()
-    last_seen = models.DateTimeField()
+    last_seen = models.DateTimeField(null=True)
     is_alive = models.BooleanField(default=True)
 
     def send_command(self, command_list: List, timeout=5):
@@ -27,12 +27,13 @@ class Computer(models.Model):
             raise WrongCommandFormat(
                 F"command list shoul be list, not {type(command_list)}")
 
-        data = {'command': command_list}
+        data = {'command': command_list + [""]}
+        print(F"Asking host {self.ip}")
+        print("Sending: ", data)
         try:
             r = requests.post(
                 F"http://{self.ip}:{self.port}", data, timeout=timeout)
-        except requests.exceptions.ConnectionError as e:
-            print(e)
+        except requests.exceptions.ConnectionError:
             self.is_alive = False
             self.save()
             return None
@@ -46,9 +47,9 @@ class Computer(models.Model):
     def refresh(self):
         # Do not update more than once per 5 seconds
         current_time = datetime.datetime.now(tz=timezone.utc)
-        if self.last_seen > current_time - datetime.timedelta(seconds=5):
+        if self.last_seen and self.last_seen > current_time - datetime.timedelta(seconds=5):
             return
-        r = self.send_command(['refresh'], 2)
+        r = self.send_command(['refresh', ], 2)
         if r is None:
             return
         if r.status_code == 200:
